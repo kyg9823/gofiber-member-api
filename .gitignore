@@ -17,3 +17,4 @@
 *.db
 
 __debug_bin
+output

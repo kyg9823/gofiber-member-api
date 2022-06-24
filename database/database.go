@@ -17,8 +17,19 @@ func ConnectDB() {
 	}
 
 	db.AutoMigrate(&model.Member{})
+	db.AutoMigrate(&model.Favorite{})
 
-	db.Create(&model.Member{Id: 1, Name: "Kim Youngkook", Email: "kyg9823@gmail.com"})
+	db.Create(&model.Member{Id: 1, Name: "Kim Youngkook", Email: "kyg9823@gmail.com", Favorites: []model.Favorite{
+		{
+			Id:   1,
+			Item: "Food",
+		},
+		{
+			Id:   1,
+			Item: "Go",
+		},
+	},
+	})
 
 	DBConn = db
 }

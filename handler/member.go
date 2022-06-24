@@ -1,53 +1,77 @@
 package handler
 
 import (
-	"log"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/kyg9823/gofiber-member-api/database"
 	"github.com/kyg9823/gofiber-member-api/model"
 )
 
 func GetMembers(ctx *fiber.Ctx) error {
-	var members []model.Member
-	database.DBConn.Find(&members)
-	return ctx.JSON(members)
+	var members []model.MemberResponse
+	database.DBConn.Table("members").Select("id", "name", "email").Find(&members)
+	return ctx.Status(fiber.StatusOK).JSON(members)
 }
 
 func GetMember(ctx *fiber.Ctx) error {
 	memberId := ctx.Params("id")
 
-	var member model.Member
-	result := database.DBConn.First(&member, memberId)
-	log.Printf("%v", result)
+	var member model.MemberDetailResponse
+	result := database.DBConn.
+		Table("members").
+		Select("members.id", "members.name", "members.email", "group_concat(favorites.item) AS favorites").
+		Joins("left join favorites on members.id = favorites.id").Where("members.id = ?", memberId).
+		Group("members.id, members.name, members.email").
+		Find(&member)
+
 	if result.RowsAffected == 0 {
-		ctx.Status(404)
-		return ctx.JSON(fiber.Map{
-			"status":  404,
-			"message": "Not Found",
+		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"status": fiber.StatusNotFound,
+			"result": "Not Found",
 		})
 	}
 
-	return ctx.JSON(member)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(member)
 }
 
 func NewMember(ctx *fiber.Ctx) error {
-	member := new(model.Member)
-	if err := ctx.BodyParser(member); err != nil {
-		return ctx.Status(503).SendString(err.Error())
+	memberId, _ := ctx.ParamsInt("id")
+	memberRequest := new(model.MemberRequest)
+	if err := ctx.BodyParser(memberRequest); err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "Can't parse body data.")
 	}
-	database.DBConn.Create(&member)
-	return ctx.JSON(member)
+
+	member := &model.Member{
+		Id: int32(memberId),
+	}
+	member.ConvertFromRequest(memberRequest)
+	result := database.DBConn.Create(&member)
+
+	if result.Error != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, result.Error.Error())
+	}
+	return ctx.Status(fiber.StatusOK).JSON(memberRequest)
 }
 
 func PutMember(ctx *fiber.Ctx) error {
 	member := new(model.Member)
 	if err := ctx.BodyParser(member); err != nil {
-		return ctx.Status(503).SendString(err.Error())
+		return fiber.NewError(fiber.StatusInternalServerError, "Can't parse body data.")
 	}
-	database.DBConn.Create(&member)
-	return ctx.JSON(fiber.Map{
-		"status": 200,
+	result := database.DBConn.Save(&member)
+
+	if result.RowsAffected == 0 {
+		return ctx.Status(fiber.StatusNoContent).JSON(fiber.Map{
+			"status": fiber.StatusNoContent,
+			"result": "No Content",
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status": fiber.StatusOK,
 		"result": "OK",
 	})
 }
@@ -56,22 +80,20 @@ func DeleteMember(ctx *fiber.Ctx) error {
 	memberId := ctx.Params("id")
 	var member model.Member
 	result := database.DBConn.First(&member, memberId)
-	log.Printf("%v", result)
 	if result.RowsAffected == 0 {
-		ctx.Status(204)
-		return ctx.JSON(fiber.Map{
-			"status":  204,
-			"message": "No Content",
+		return ctx.Status(fiber.StatusNoContent).JSON(fiber.Map{
+			"status": fiber.StatusNoContent,
+			"result": "No Content",
 		})
 	}
 
 	result = database.DBConn.Delete(&member)
 	if result.Error != nil {
-		log.Printf("Error")
+		return fiber.NewError(fiber.StatusInternalServerError, result.Error.Error())
 	}
 
-	return ctx.JSON(fiber.Map{
-		"status": 200,
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status": fiber.StatusOK,
 		"result": "OK",
 	})
 }

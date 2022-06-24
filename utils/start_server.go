@@ -28,7 +28,7 @@ func StartServerWithGracefulShutdown(a *fiber.App) {
 	fiberConnURL := fmt.Sprintf(":%s", config.GetConfig("PORT"))
 
 	if err := a.Listen(fiberConnURL); err != nil {
-		log.Printf("Oops... Server is not running! Reason: %v", err)
+		log.Fatalf("Oops... Server is not running! Reason: %v", err)
 	}
 
 	<-idleConnsClosed
@@ -38,6 +38,6 @@ func StartServer(a *fiber.App) {
 	fiberConnURL := fmt.Sprintf(":%s", config.GetConfig("PORT"))
 
 	if err := a.Listen(fiberConnURL); err != nil {
-		log.Printf("Oops... Server is not running! Reason: %v", err)
+		log.Fatalf("Oops... Server is not running! Reason: %v", err)
 	}
 }
