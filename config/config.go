@@ -13,3 +13,12 @@ func GetConfig(key string) string {
 	}
 	return value
 }
+
+func GetPort() string {
+	port := GetConfig("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	return port
+}

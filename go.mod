@@ -10,6 +10,13 @@ require (
 )
 
 require (
+	github.com/gofiber/jwt/v2 v2.2.7
+	github.com/golang-jwt/jwt v3.2.2+incompatible
+)
+
+require github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
+
+require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
@@ -29,7 +36,8 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.37.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
-	golang.org/x/sys v0.0.0-20220622161953-175b2fd9d664 // indirect
+	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
+	golang.org/x/sys v0.0.0-20220624220833-87e55d714810 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/ini.v1 v1.66.4 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

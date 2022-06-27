@@ -11,7 +11,7 @@
       "mode": "auto",
       "program": "${workspaceRoot}",
       "env": {
-        "PORT": "8080"
+        "ACCESS_SECRET": "memberapi"
       }
     }
   ]

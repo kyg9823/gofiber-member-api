@@ -6,6 +6,13 @@
 - Database: SQLite
 - ORM: gorm
 
+## Configurations
+
+| Name    | Description    | Remarks                                        |
+| ------- | -------------- | ---------------------------------------------- |
+| PROFILE | Profile        | - `dev`(default): Development </br> - `prd`: Production |
+| PORT    | Listening Port | default: 8080                                  |
+
 ## API
 
 - GET /api/v1/members
