@@ -4,16 +4,18 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/kyg9823/gofiber-member-api/config"
 	"github.com/kyg9823/gofiber-member-api/database"
-	"github.com/kyg9823/gofiber-member-api/handler"
+	"github.com/kyg9823/gofiber-member-api/handlers"
 	"github.com/kyg9823/gofiber-member-api/routers"
 	"github.com/kyg9823/gofiber-member-api/utils"
 )
 
 func main() {
 	database.ConnectDB()
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		ErrorHandler: handlers.DefaultErrorHandler,
+	})
 
-	app.Get("/healthcheck", handler.Healthcheck)
+	app.Get("/healthcheck", handlers.Healthcheck)
 
 	routers.SetRouter(app)
 

@@ -1,4 +1,4 @@
-package handler
+package handlers
 
 import (
 	"github.com/gofiber/fiber/v2"
@@ -24,14 +24,11 @@ func GetMember(ctx *fiber.Ctx) error {
 		Find(&member)
 
 	if result.RowsAffected == 0 {
-		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"status": fiber.StatusNotFound,
-			"result": "Not Found",
-		})
+		return fiber.NewError(fiber.StatusNotFound, "Not Found")
 	}
 
 	if result.Error != nil {
-		return result.Error
+		return fiber.NewError(fiber.StatusInternalServerError, result.Error.Error())
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(member)
@@ -64,10 +61,7 @@ func PutMember(ctx *fiber.Ctx) error {
 	result := database.DBConn.Save(&member)
 
 	if result.RowsAffected == 0 {
-		return ctx.Status(fiber.StatusNoContent).JSON(fiber.Map{
-			"status": fiber.StatusNoContent,
-			"result": "No Content",
-		})
+		return fiber.NewError(fiber.StatusNoContent, "Not Content")
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
@@ -81,10 +75,7 @@ func DeleteMember(ctx *fiber.Ctx) error {
 	var member model.Member
 	result := database.DBConn.First(&member, memberId)
 	if result.RowsAffected == 0 {
-		return ctx.Status(fiber.StatusNoContent).JSON(fiber.Map{
-			"status": fiber.StatusNoContent,
-			"result": "No Content",
-		})
+		return fiber.NewError(fiber.StatusNoContent, "Not Content")
 	}
 
 	result = database.DBConn.Delete(&member)

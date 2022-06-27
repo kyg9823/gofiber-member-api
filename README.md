@@ -18,3 +18,10 @@
 
 - members
 - favorites
+
+## Dockerize
+
+```bash
+  docker build -t member-api:1.0.0 .
+  docker run -d --publish "8080:8080" --env PORT="8080" --name member-api member-api:1.0.0
+```
