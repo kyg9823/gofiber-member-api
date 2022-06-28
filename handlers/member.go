@@ -15,11 +15,12 @@ func GetMembers(ctx *fiber.Ctx) error {
 func GetMember(ctx *fiber.Ctx) error {
 	memberId := ctx.Params("id")
 
-	var member model.MemberDetailResponse
+	var member model.MemberDetail
 	result := database.DBConn.
 		Table("members").
-		Select("members.id", "members.name", "members.email", "group_concat(favorites.item) AS favorites").
-		Joins("left join favorites on members.id = favorites.id").Where("members.id = ?", memberId).
+		Select("members.id", "members.name", "members.email", "group_concat(favorites.item) as favorites").
+		Joins("left join favorites on members.id = favorites.id").
+		Where("members.id = ?", memberId).
 		Group("members.id, members.name, members.email").
 		Find(&member)
 
@@ -31,18 +32,21 @@ func GetMember(ctx *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, result.Error.Error())
 	}
 
-	return ctx.Status(fiber.StatusOK).JSON(member)
+	memberDetailResponse := new(model.MemberDetailResponse)
+	memberDetailResponse.ConvertToResponse(&member)
+
+	return ctx.Status(fiber.StatusOK).JSON(memberDetailResponse)
 }
 
 func NewMember(ctx *fiber.Ctx) error {
-	memberId, _ := ctx.ParamsInt("id")
+	memberId := ctx.Params("id")
 	memberRequest := new(model.MemberRequest)
 	if err := ctx.BodyParser(memberRequest); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, "Can't parse body data.")
 	}
 
 	member := &model.Member{
-		Id: int32(memberId),
+		Id: memberId,
 	}
 	member.ConvertFromRequest(memberRequest)
 	result := database.DBConn.Create(&member)
@@ -54,11 +58,23 @@ func NewMember(ctx *fiber.Ctx) error {
 }
 
 func PutMember(ctx *fiber.Ctx) error {
-	member := new(model.Member)
-	if err := ctx.BodyParser(member); err != nil {
+	memberId := ctx.Params("id")
+	memberRequest := new(model.MemberRequest)
+	if err := ctx.BodyParser(memberRequest); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, "Can't parse body data.")
 	}
-	result := database.DBConn.Save(&member)
+
+	member := &model.Member{
+		Id: memberId,
+	}
+
+	result := database.DBConn.Where("id = ?", memberId).Delete(&model.Favorite{})
+	if result.Error != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, result.Error.Error())
+	}
+
+	member.ConvertFromRequest(memberRequest)
+	result = database.DBConn.Save(&member)
 
 	if result.RowsAffected == 0 {
 		return fiber.NewError(fiber.StatusNoContent, "Not Content")
@@ -73,12 +89,17 @@ func PutMember(ctx *fiber.Ctx) error {
 func DeleteMember(ctx *fiber.Ctx) error {
 	memberId := ctx.Params("id")
 	var member model.Member
-	result := database.DBConn.First(&member, memberId)
+	result := database.DBConn.Where("id = ?", memberId).First(&member)
 	if result.RowsAffected == 0 {
 		return fiber.NewError(fiber.StatusNoContent, "Not Content")
 	}
 
-	result = database.DBConn.Delete(&member)
+	result = database.DBConn.Where("id = ?", memberId).Delete(&member)
+	if result.Error != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, result.Error.Error())
+	}
+
+	result = database.DBConn.Where("id = ?", memberId).Delete(&model.Favorite{})
 	if result.Error != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, result.Error.Error())
 	}

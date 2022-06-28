@@ -1,32 +1,39 @@
 package model
 
 import (
-	"gorm.io/gorm"
+	"strings"
 )
 
 type Member struct {
-	gorm.Model
-	Id        int32      `json:"id" gorm:"primaryKey"`
+	// gorm.Model
+	Id        string     `json:"id" gorm:"primaryKey"`
 	Name      string     `json:"name"`
 	Email     string     `json:"email" gorm:"unique"`
 	Favorites []Favorite `json:"favorites" gorm:"foreignKey:Id"`
 }
 
 type MemberResponse struct {
-	Id    int32  `json:"id"`
+	Id    string `json:"id"`
 	Name  string `json:"name"`
 	Email string `json:"email"`
 }
 
-type MemberDetailResponse struct {
-	Id        int32  `json:"id"`
+type MemberDetail struct {
+	Id        string `json:"id"`
 	Name      string `json:"name"`
 	Email     string `json:"email"`
 	Favorites string `json:"favorites"`
 }
 
+type MemberDetailResponse struct {
+	Id        string   `json:"id"`
+	Name      string   `json:"name"`
+	Email     string   `json:"email"`
+	Favorites []string `json:"favorites"`
+}
+
 type MemberRequest struct {
-	Id        int32    `json:"id"`
+	Id        string   `json:"id"`
 	Name      string   `json:"name"`
 	Email     string   `json:"email"`
 	Favorites []string `json:"favorites"`
@@ -44,4 +51,11 @@ func (member *Member) ConvertFromRequest(memberRequest *MemberRequest) {
 		})
 	}
 	member.Favorites = *favorites
+}
+
+func (member *MemberDetailResponse) ConvertToResponse(memberDetail *MemberDetail) {
+	member.Id = memberDetail.Id
+	member.Name = memberDetail.Name
+	member.Email = memberDetail.Email
+	member.Favorites = strings.Split(memberDetail.Favorites, ",")
 }
